@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "mondaytimetrack"
+version = "0.1.0"
+description = ""
+authors = ["Jonathan Crum <jcrum@theobogroup.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^2.2.2"
+aiohttp = "^3.8.3"
+pyjwt = "^2.6.0"
+loguru = "^0.6.0"
+gunicorn = "^20.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
