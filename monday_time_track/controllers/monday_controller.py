@@ -1,13 +1,15 @@
 from __future__ import annotations
 from http.client import HTTPException
+from pprint import pprint
 from typing import *
 
 if TYPE_CHECKING:
-    from flask import Response
+    from flask import Request, Response
 
+import os
 import json
 from http import HTTPStatus
-from flask import make_response
+from flask import make_response, session
 
 from monday_time_track.services.monday_svc import (
     get_column_value_service, 
@@ -17,41 +19,39 @@ from monday_time_track.services.monday_svc import (
 from monday_time_track.services.transform_svc import transform_text_service
 from monday_time_track._types import TRANSFORMATION_TYPES, TransformationType
 
+from sorcery import maybe
 from loguru import logger
-
-
-class TextTransformPayload(TypedDict):
-    board_id: str
-    item_id: str
-    source_column_id: str
-    target_column_id: str
-    transformation_type: TransformationType
 
 
 class MondayController:
     
-    def execute_action(self, token, payload: TextTransformPayload) -> Response:
+    def execute_action(self, req: Request) -> Response:
+        token = session.pop('short_lived_token')
+
+        payload: Dict[str, Any] = maybe(req).json['payload']
+        input_fields: Dict[str, Any] = maybe(payload).get('inputFields')
+
         text_value = get_column_value_service(
             token       = token,
-            item_id     = payload['item_id'],
-            column_id   = payload['source_column_id']
+            item_id     = input_fields['itemId'],
+            column_id   = input_fields['sourceColumnId']
         )
-        
+
         if text_value is None:
             response = make_response()
             response.status = HTTPStatus.OK
             return response
-        
+
         transformed_value = transform_text_service(
             text_value, 
-            payload['transformation_type']
+            input_fields['transformationType']
         )
-        
+
         mutate_column_value_service(
             token,
-            payload['board_id'],
-            payload['item_id'],
-            payload['target_column_id'],
+            int(input_fields['boardId']),
+            int(input_fields['itemId']),
+            input_fields['targetColumnId'],
             transformed_value,
         )
         
@@ -63,13 +63,13 @@ class MondayController:
         response = make_response()
         
         try:
-            response.status = HTTPStatus.OK
+            response.headers['Content-Type'] = 'application/json'
             response.data = json.dumps(TRANSFORMATION_TYPES)
-            logger.debug(response.data)
+            response.status = HTTPStatus.OK
             return response
         
         except HTTPException as err:
-            logger.debug(err)
+            response.headers['Content-Type'] = 'application/json'
             response.data = json.dumps(err.args)
             response.status = HTTPStatus.INTERNAL_SERVER_ERROR
             return response

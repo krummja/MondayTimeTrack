@@ -35,15 +35,17 @@ def create_app() -> Flask:
         logger.info('Server up!')
         return 'Server up!'
     
-    @app.route('/execute_action', methods=['POST'])
-    def execute_action():
+    @app.route('/monday/execute_action', methods=['POST'])
+    def execute_action() -> Response:
         authentication.authenticate(request)
-        return ''
+        _res: Response = controller.execute_action(request)
+        return _res
     
-    @app.route('/get_remote_list_options', methods=['POST'])
+    @app.route('/monday/get_remote_list_options', methods=['POST'])
     def field_definition() -> Response:
         authentication.authenticate(request)
-        return controller.get_remote_list_options()
+        _res: Response = controller.get_remote_list_options()
+        return _res
     
     @app.route('/subscribe', methods=['POST'])
     def subscribe():

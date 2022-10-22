@@ -1,57 +1,67 @@
 from __future__ import annotations
-from pprint import pprint
 from typing import *
 
 if TYPE_CHECKING:
-    pass
+    from requests import Response
     
 import os
-from monday_time_track.monday_sdk_py.client import MondayClientSDK
+from monday_time_track.monday_sdk.client import MondayClientSDK
+from sorcery import maybe
 
 
 def get_column_value_service(token: str, item_id: str, column_id: str) -> Any:
     client_id = os.environ['CLIENT_ID']
-    monday = MondayClientSDK(token, client_id)
+    
+    monday = MondayClientSDK(
+        client_id=client_id, 
+        api_token=token,
+    )
     
     query = (
-        '''
+        """
         query ($itemId: [Int], $columnId: [String]) {
-        items (ids: $itemId) {
+          items (ids: $itemId) {
             column_values (ids: $columnId) {
-            value
+              value
             }
+          }
         }
-        }
-        '''
+        """
     )
-
+    
     variables = {
         'itemId': item_id,
         'columnId': column_id,
     }
 
-    response = monday.api(query, **variables)
-    pprint(vars(response))
+    response: Response = maybe(monday).api(query, **variables)
 
+    data = response.json()['data']
+    item = data['items'][0]
+    column_value = item['column_values'][0]['value']
+    return column_value
 
 def mutate_column_value_service(
         token: str, 
-        board_id: str, 
-        item_id: str, 
+        board_id: int, 
+        item_id: int, 
         column_id: str, 
-        value
+        value: str,
     ):
     client_id = os.environ['CLIENT_ID']
-    monday = MondayClientSDK(token, client_id)
+    monday = MondayClientSDK(
+        client_id=client_id, 
+        api_token=token,
+    )
     
     query = (
-        '''
+        """
         mutation change_column_value ($boardId: Int!, $itemId: Int!, $columnId: String!, $value: JSON!) {
-          change_column_value (boardId: $boardId, itemId: $itemId, columnId: $columnId, value: $value) {
+          change_column_value (board_id: $boardId, item_id: $itemId, column_id: $columnId, value: $value) {
             id
           }
         }
-        '''
+        """
     )
     
     variables = {
@@ -61,5 +71,5 @@ def mutate_column_value_service(
         'value': value,
     }
     
-    response = monday.api(query, **variables)
-    pprint(vars(response))
+    response: Response = maybe(monday).api(query, **variables)
+    return response

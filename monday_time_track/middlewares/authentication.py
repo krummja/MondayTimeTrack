@@ -37,7 +37,6 @@ def authenticate(req: Request) -> Response:
         return response
     
     except InvalidTokenError as err:
-        logger.debug(err)
         response.data = json.dumps(err.args)
         response.status = HTTPStatus.INTERNAL_SERVER_ERROR
         return response

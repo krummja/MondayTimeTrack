@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pprint import pprint
 from typing import *
 from types import TracebackType
 
@@ -12,6 +13,7 @@ from requests.auth import AuthBase
 from requests.adapters import HTTPAdapter
 from requests_toolbelt import sessions
 
+from loguru import logger
 from dotenv import load_dotenv
 
 
@@ -53,22 +55,24 @@ class MondayContext:
             exc_val: BaseException,
             exc_tb: TracebackType
         ) -> bool:
-        self._base_ctx.close()        
+        self._base_ctx.close()
         return False
 
 
 class MondayClientSDK:
     
-    def __init__(self, client_id: str, api_token: str) -> None:
+    def __init__(self, *, client_id: str, api_token: str) -> None:
         self._client_id = client_id
         self._api_token = api_token
     
     def api(self, query, **options):
-        params = { 'query': query, 'variables': options.get('variables') }
+        params = { 'query': query, 'variables': options }
+        logger.debug(params)
         token = options.get('api_token', self._api_token)
-        
+
         if token:
-            self.execute(params, token)
+            result = self.execute(params, token)
+            return result
             
     def oauth(self, **options) -> str:
         """Build an oauth redirect for monday.com oauth flow."""
@@ -90,9 +94,11 @@ class MondayClientSDK:
         full_url = url + path
         
         with MondayContext(token) as ctx:
+            print(data)
             _res: Response = ctx.request(
                 url=full_url,
                 method=options.get('method', 'POST'),
-                data=json.dumps(data),
+                json=data,
             )
+
             return _res
