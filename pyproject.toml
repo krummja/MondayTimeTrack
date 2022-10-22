@@ -6,7 +6,7 @@ authors = ["Jonathan Crum <jcrum@theobogroup.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "3.10.5"
 flask = "^2.2.2"
 aiohttp = "^3.8.3"
 pyjwt = "^2.6.0"
