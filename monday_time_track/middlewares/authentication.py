@@ -3,7 +3,7 @@ from typing import *
 
 if TYPE_CHECKING:
     from flask import Request, Response
-    
+
 import os
 import jwt
 import json
@@ -30,6 +30,8 @@ def authenticate(req: Request) -> Response:
                 'verify_aud': False,
             },
         )
+        
+        logger.debug(decoded)
         
         session['account_id'] = decoded.get('accountId')
         session['user_id'] = decoded.get('userId')
