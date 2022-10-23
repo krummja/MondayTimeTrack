@@ -47,7 +47,7 @@ def with_localtunnel(app: Flask, subdomain: Optional[str] = None) -> None:
 
 if __name__ == '__main__':
     server_app = create_app()
-    with_localtunnel(server_app, 'test-monday-integration')
+    with_localtunnel(server_app, 'monday-time-track')
     server_app.run(host="localhost", port=8080, debug=True)
 else:
     server_app = create_app()
