@@ -1,14 +1,12 @@
 from __future__ import annotations
-from http.client import HTTPException
-from pprint import pprint
 from typing import *
 
 if TYPE_CHECKING:
     from flask import Request, Response
 
-import os
 import json
 from http import HTTPStatus
+from http.client import HTTPException
 from flask import make_response, session
 
 from monday_time_track.services.monday_svc import (
@@ -26,7 +24,12 @@ from loguru import logger
 class MondayController:
     
     def execute_action(self, req: Request) -> Response:
-        token = session.pop('short_lived_token')
+        token = session.pop('short_lived_token', None)
+
+        if token is None:
+            response = make_response()
+            response.status = HTTPStatus.OK
+            return response
 
         payload: Dict[str, Any] = maybe(req).json['payload']
         input_fields: Dict[str, Any] = maybe(payload).get('inputFields')

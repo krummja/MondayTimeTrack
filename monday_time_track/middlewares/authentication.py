@@ -9,7 +9,6 @@ import jwt
 import json
 from http import HTTPStatus
 from flask import make_response, session
-from loguru import logger
 from jwt.exceptions import *
 
 
@@ -30,9 +29,7 @@ def authenticate(req: Request) -> Response:
                 'verify_aud': False,
             },
         )
-        
-        logger.debug(decoded)
-        
+
         session['account_id'] = decoded.get('accountId')
         session['user_id'] = decoded.get('userId')
         session['short_lived_token'] = decoded.get('shortLivedToken')
